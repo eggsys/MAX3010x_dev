@@ -26,8 +26,82 @@ def loop_test():
         print("X")
         break
 
+def runAll():
 
-def runExample():
+    runDelta()
+    heartRateData = runHeartRate()
+    return heartRateData
+
+def runDelta():
+
+	print("\nSparkFun MAX3010x Photodetector - Example 1\n")
+	sensor = qwiic_max3010x.QwiicMax3010x()
+
+	if sensor.begin() == False:
+		print("The Qwiic MAX3010x device isn't connected to the system. Please check your connection", \
+			file=sys.stderr)
+		return
+	else:
+		print("The Qwiic MAX3010x is connected.")
+
+  	# Setup to sense up to 18 inches, max LED brightness
+	ledBrightness = 0xFF # Options: 0=Off to 255=50mA
+	sampleAverage = 4 # Options: 1, 2, 4, 8, 16, 32
+	ledMode = 2 # Options: 1 = Red only, 2 = Red + IR, 3 = Red + IR + Green
+	sampleRate = 400 # Options: 50, 100, 200, 400, 800, 1000, 1600, 3200
+	pulseWidth = 411 # Options: 69, 118, 215, 411
+	adcRange = 2048 # Options: 2048, 4096, 8192, 16384
+
+	if sensor.setup(ledBrightness, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange) == False:
+		print("Device setup failure. Please check your connection", \
+			file=sys.stderr)
+		return
+	else:
+		print("Setup complete.")        
+
+	sensor.setPulseAmplitudeRed(0) # Turn off Red LED
+	sensor.setPulseAmplitudeGreen(0) # Turn off Green LED
+
+	samplesTaken = 0       # Counter for calculating the Hz or read rate
+	unblockedValue = 0     # Average IR at power up
+	startTime = 0          # Used to calculate measurement rate
+
+	# Take an average of IR readings at power up
+	unblockedValue = 0
+	for i in range(0,32):
+		unblockedValue += sensor.getIR() # Read the IR value
+	unblockedValue /= 32
+
+	startTime = millis()
+    
+    
+    
+	while True:
+                samplesTaken += 1
+
+                IRSample = sensor.getIR()
+                hertz = samplesTaken / ((millis() - startTime) / 1000)
+                currentDelta = (IRSample - unblockedValue)
+
+                hertz = round(hertz, 2)
+                currentDelta = round(currentDelta, 2)
+
+                message = ' ' # blank message
+                print("currentDelta : ", currentDelta)
+                if currentDelta > 100:
+                    message = 'Something is there!'
+
+                
+
+                if currentDelta >= 10000:
+                    print("Finger is there ! ")
+                    break
+        
+
+
+
+
+def runHeartRate():
     #tic = time.perf_counter()
 	print("\nSparkFun MAX3010x Photodetector - Example 5\n")
 	sensor = qwiic_max3010x.QwiicMax3010x()
@@ -60,6 +134,7 @@ def runExample():
 	samplesTaken = 0 # Counter for calculating the Hz or read rate
 	startTime = millis() # Used to calculate measurement rate
 	count = 0
+    
 	while True:
                     
                 irValue = sensor.getIR()
@@ -97,8 +172,9 @@ def runExample():
                         )
                 
                 count = count + 1
-                if(count == 10):
-                    break
+                print("Count :: ",count)
+                if(count == 400):
+                    #break
                     return irValue, beatsPerMinute, beatAvg, Hz  
                 
     
