@@ -3,7 +3,8 @@ class main():
     def __init__(self):
         super().__init__()
         print("Main init")
-        hr_rsult = get_hr()
+        #hr_rsult = get_hr()
+        hr_rsult = runExample()
         print(hr_rsult)
 
     
